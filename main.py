@@ -3,7 +3,7 @@
 main.py — M-D Web Scraper
 
 Interactive and argument-driven CLI for e-commerce data collection.
-Supports Amazon, Noon, AliExpress, Jumia, eBay, and Books to Scrape.
+Supports Amazon, Noon, AliExpress, Jumia, and eBay.
 
 Author  : M-D (Mohamed Darwish)
 Usage   :
@@ -17,6 +17,7 @@ Usage   :
 """
 
 import argparse
+import os
 import sys
 import time
 from pathlib import Path
@@ -24,7 +25,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from config.settings import settings
-from src.scrapers.factory import create_scraper, list_sites, site_keys, REGISTRY
+from src.scrapers.factory import create_scraper, list_sites, site_keys, REGISTRY, add_custom_site
 from src.scrapers.base import ScraperConfig
 from src.scrapers.simulated import SimulatedScraper, NOUNS
 from src.pipeline.cleaner import clean_products
@@ -255,10 +256,13 @@ def run_analyze() -> None:
     print_section("Availability")
     for k, v in avail.items():
         color = C.BGREEN if k == "in_stock" else (C.BYELLOW if k == "limited" else C.BRED)
+        k_str = f"{k:<15}"
+        v_count = str(v['count'])
+        v_pct = f"({v['pct']}%)"
         print(
-            f"  {style(k:<15), C.DIM}  "
-            f"{style(str(v['count']), color)}  "
-            f"{style(f\"({v['pct']}%)\", C.DIM)}"
+            f"  {style(k_str, C.DIM)}  "
+            f"{style(v_count, color)}  "
+            f"{style(v_pct, C.DIM)}"
         )
 
     print()
@@ -352,6 +356,7 @@ def interactive_mode() -> None:
                 "Analyze stored data",
                 "Export data to file",
                 "View database stats",
+                "Clean current data",
                 "Exit",
             ],
         )
@@ -365,58 +370,83 @@ def interactive_mode() -> None:
         elif choice == 3:
             run_stats()
         elif choice == 4:
+            _interactive_clear()
+        elif choice == 5:
             print()
             dim("Goodbye.")
             print()
             sys.exit(0)
 
 
+def _interactive_clear() -> None:
+    """Confirm and clear all database data."""
+    if confirm("Are you sure you want to clear ALL products and runs?", default=False):
+        db = SQLiteStorage(settings.db_path)
+        count = db.clear_all()
+        ok(f"Database cleared. {count} products removed.")
+    else:
+        info("Clear operation cancelled.")
+
+
 def _interactive_scrape() -> None:
     """Interactive scrape configuration wizard."""
 
     # --- Site selection ---
-    print_section("Site Selection")
+    while True:
+        print_section("Site Selection")
 
-    sites   = list_sites()
-    labels  = []
-    for key, info_ in sites:
-        mode_str = style("[live]",      C.BGREEN)  if info_.mode == "live" else style("[simulated]", C.BYELLOW)
-        labels.append(f"{info_.name:<18} {mode_str}  {style(info_.currency, C.CYAN)}  —  {info_.description}")
-    labels.append("All sites")
+        sites   = list_sites()
+        labels  = [info_.name for _, info_ in sites]
+        labels.append("Add a new site")
+        labels.append("All sites")
 
-    indices = prompt_multi_choice("Select sites to scrape:", labels)
+        indices = prompt_multi_choice("Select sites to scrape:", labels, show_back=True)
 
-    if len(labels) - 1 in indices:
-        selected_keys = [k for k, _ in sites]
-    else:
-        selected_keys = [sites[i][0] for i in indices if i < len(sites)]
+        if not indices: # Back selected
+            return
+
+        if len(labels) - 1 in indices: # All sites
+            selected_keys = [k for k, _ in sites]
+        elif len(labels) - 2 in indices: # Add a new site
+            name = prompt_text("Enter site name")
+            url  = prompt_text("Enter site URL")
+            curr = prompt_text("Enter currency (e.g. USD, EGP, AED)", default="USD")
+            key  = add_custom_site(name, url, curr)
+            ok(f"Site '{name}' added to default list.")
+            selected_keys = [key]
+        else:
+            selected_keys = [sites[i][0] for i in indices if i < len(sites)]
+        
+        break # Success
+
+    # --- Currency selection ---
+    print_section("Currency")
+    curr_choice = prompt_choice(
+        "Select output currency:",
+        ["Original site currency", "USD", "EGP", "AED", "SAR"],
+        default=0,
+        show_back=True
+    )
+    if curr_choice == -1: return
 
     # --- Category selection ---
     print_section("Category")
-    use_cat = confirm("Filter by a specific category?", default=False)
+    
+    # We'll use a standard list of categories for simplicity, 
+    # but we could also fetch them from the scraper if it's live.
+    common_cats = [
+        "Electronics", "Fashion", "Home", "Books", "Sports", 
+        "Beauty", "Toys", "Automotive", "Garden", "Food"
+    ]
+    
+    cat_labels = common_cats + ["All categories (no filter) (default)"]
+    cat_idx = prompt_choice("Select category:", cat_labels, default=len(cat_labels)-1, show_back=True)
+    
+    if cat_idx == -1: return
+    
     category = None
-
-    if use_cat:
-        # Show categories from the first selected site
-        first_key = selected_keys[0]
-        first_scraper = create_scraper(first_key)
-        if isinstance(first_scraper, SimulatedScraper):
-            all_cats = first_scraper.available_categories()
-            cat_labels  = all_cats + ["All categories (no filter)"]
-            cat_idx     = prompt_choice("Select category:", cat_labels, default=len(cat_labels) - 1)
-            if cat_idx < len(all_cats):
-                category = all_cats[cat_idx]
-        else:
-            # Live scraper — fetch real categories
-            info("Fetching categories from site...")
-            from src.scrapers.books_scraper import BooksScraper
-            if isinstance(first_scraper, BooksScraper):
-                real_cats = list(first_scraper.get_categories().keys())
-                if real_cats:
-                    real_cats.append("All categories")
-                    cat_idx  = prompt_choice("Select category:", real_cats, default=len(real_cats) - 1)
-                    if cat_idx < len(real_cats) - 1:
-                        category = real_cats[cat_idx]
+    if cat_idx < len(common_cats):
+        category = common_cats[cat_idx]
 
     # --- Query ---
     print_section("Search Query")
@@ -439,11 +469,15 @@ def _interactive_scrape() -> None:
     print_section("Export Format")
     fmt_idx = prompt_choice(
         "Output format:",
-        ["CSV (recommended for Kaggle)", "Excel (.xlsx)", "JSON", "All three"],
+        ["CSV", "Excel (.xlsx)", "JSON", "All three"],
         default = 0,
+        show_back=True
     )
+    if fmt_idx == -1: return
+    
     fmt_map = {0: "csv", 1: "excel", 2: "json", 3: "all"}
     fmt     = fmt_map[fmt_idx]
+
 
     # --- Confirm ---
     print_section("Summary")
@@ -560,11 +594,15 @@ def cmd_sites() -> None:
     print_section("Available Sites")
     for key, site in list_sites():
         mode_color = C.BGREEN if site.mode == "live" else C.BYELLOW
+        key_str = f"{key:<12}"
+        name_str = f"{site.name:<18}"
+        mode_str = f"{site.mode:<12}"
+        curr_str = f"{site.currency:<6}"
         print(
-            f"  {style(key:<12), C.BOLD}  "
-            f"{style(site.name:<18)}  "
-            f"{style(site.mode, mode_color):<12}  "
-            f"{style(site.currency, C.CYAN):<6}  "
+            f"  {style(key_str, C.BOLD)}  "
+            f"{style(name_str)}  "
+            f"{style(mode_str, mode_color)}  "
+            f"{style(curr_str, C.CYAN)}  "
             f"{style(site.description, C.DIM)}"
         )
     print()
@@ -575,6 +613,9 @@ def cmd_sites() -> None:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
+    # Clear terminal screen
+    os.system("cls" if os.name == "nt" else "clear")
+    
     print_header()
 
     parser = build_parser()

@@ -1,21 +1,63 @@
+# Python
 __pycache__/
 *.py[cod]
+*$py.class
 .Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
 *.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
 venv/
 .venv/
 env/
-.idea/
-.vscode/
-*.swp
-.DS_Store
-Thumbs.db
+venv.bak/
+.env/
+Scripts/
+Include/
+Lib/
+pyvenv.cfg
+share/
+etc/
+
+# Testing / Coverage
+.cache
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Data and Logs
 logs/
 *.log
-.env
-.env.local
-.ipynb_checkpoints/
-data/raw/
-data/processed/*.json
-data/processed/*.xlsx
+data/processed/*
 data/scraper.db
+!data/processed/.gitkeep
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

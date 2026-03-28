@@ -178,6 +178,16 @@ class SQLiteStorage:
         finally:
             conn.close()
 
+    def clear_all(self) -> int:
+        conn = self._connect()
+        try:
+            cur1 = conn.execute("DELETE FROM products")
+            cur2 = conn.execute("DELETE FROM scrape_runs")
+            conn.commit()
+            return cur1.rowcount
+        finally:
+            conn.close()
+
     @staticmethod
     def _to_row(p: Product) -> dict:
         return {

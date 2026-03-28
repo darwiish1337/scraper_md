@@ -11,7 +11,6 @@ from dataclasses import dataclass
 from typing import Optional
 
 from src.scrapers.base import BaseScraper, ScraperConfig
-from src.scrapers.books_scraper import BooksScraper
 from src.scrapers.simulated import (
     AmazonScraper, NoonScraper, AliExpressScraper,
     JumiaScraper, EbayScraper,
@@ -32,7 +31,7 @@ class SiteInfo:
     scraper_cls: type[BaseScraper]
 
 
-# Registry — add new sites here only
+# Global registry instance to allow dynamic updates
 REGISTRY: dict[str, SiteInfo] = {
     "amazon": SiteInfo(
         name        = "Amazon",
@@ -69,14 +68,23 @@ REGISTRY: dict[str, SiteInfo] = {
         mode        = "simulated",
         scraper_cls = EbayScraper,
     ),
-    "books": SiteInfo(
-        name        = "Books to Scrape",
-        description = "Legal scraping practice site with 1000 real books",
-        currency    = "GBP",
-        mode        = "live",
-        scraper_cls = BooksScraper,
-    ),
 }
+
+
+def add_custom_site(name: str, url: str, currency: str = "USD") -> str:
+    """Dynamically register a new e-commerce site (simulated for now)."""
+    key = name.lower().replace(" ", "_")
+    
+    # In a real app, we would use a GenericScraper that parses the URL.
+    # For this version, we'll map it to a SimulatedScraper to ensure it works.
+    REGISTRY[key] = SiteInfo(
+        name        = name,
+        description = f"Custom site: {url}",
+        currency    = currency,
+        mode        = "simulated",
+        scraper_cls = AmazonScraper, # Using Amazon as a base template
+    )
+    return key
 
 
 def create_scraper(

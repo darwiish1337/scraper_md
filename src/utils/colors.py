@@ -94,31 +94,31 @@ def terminal_width() -> int:
 
 def print_header() -> None:
     """
-    Print the branded M-D scraper header.
+    Print the branded M-D scraper header with ASCII art.
     Shown once at startup.
     """
     w     = min(terminal_width(), 80)
     bar   = "─" * w
 
-    lines = [
-        "",
-        style(bar, C.CYAN, C.DIM),
-        style(
-            " M-D Web Scraper".center(w),
-            C.BOLD, C.BWHITE
-        ),
-        style(
-            "E-Commerce Data Collection Tool".center(w),
-            C.CYAN
-        ),
-        style(
-            "by Mohamed Darwish".center(w),
-            C.DIM, C.WHITE
-        ),
-        style(bar, C.CYAN, C.DIM),
-        "",
+    logo_lines = [
+        " ███╗   ███╗      ██████╗ ",
+        " ████╗ ████║      ██╔══██╗",
+        " ██╔████╔██║      ██║  ██║",
+        " ██║╚██╔╝██║      ██║  ██║",
+        " ██║ ╚═╝ ██║      ██████╔╝",
+        " ╚═╝     ╚═╝      ╚═════╝ "
     ]
-    print("\n".join(lines))
+
+    print()
+    for line in logo_lines:
+        print(style(line.center(w), C.BRED, C.BOLD))
+    
+    print()
+    print(style(" M-D E-Commerce Scraper ".center(w), C.BOLD, C.BWHITE))
+    print(style("E-Commerce Data Collection & Intelligence Tool".center(w), C.CYAN))
+    print(style("by Mohamed Darwish".center(w), C.DIM, C.WHITE))
+    print(style(bar, C.CYAN, C.DIM))
+    print()
 
 
 def print_section(title: str) -> None:
@@ -247,14 +247,11 @@ def prompt_choice(
     question:  str,
     choices:   list[str],
     default:   int | None = None,
+    show_back: bool = False,
 ) -> int:
     """
     Interactive numbered menu. Returns the selected index (0-based).
-
-    Args:
-        question: The question shown above the choices.
-        choices:  List of option strings.
-        default:  Index of the pre-selected default (shown in brackets).
+    Index -1 indicates 'Back' selection.
     """
     print()
     print(style(f"  {question}", C.BOLD, C.BWHITE))
@@ -265,6 +262,10 @@ def prompt_choice(
         text = style(f"  {choice}", C.WHITE)
         star = style(" (default)", C.DIM) if default is not None and i - 1 == default else ""
         print(f"{num}{text}{star}")
+
+    back_idx = len(choices) + 1
+    if show_back:
+        print(style(f"  [{back_idx}]", C.BYELLOW) + style("  Back", C.WHITE))
 
     print()
     default_hint = f" [{default + 1}]" if default is not None else ""
@@ -278,7 +279,10 @@ def prompt_choice(
             val = int(raw)
             if 1 <= val <= len(choices):
                 return val - 1
-            error(f"Enter a number between 1 and {len(choices)}.")
+            if show_back and val == back_idx:
+                return -1
+            max_val = back_idx if show_back else len(choices)
+            error(f"Enter a number between 1 and {max_val}.")
         except (ValueError, EOFError):
             error("Invalid input.")
         except KeyboardInterrupt:
@@ -289,11 +293,13 @@ def prompt_choice(
 def prompt_multi_choice(
     question: str,
     choices:  list[str],
+    show_back: bool = False,
 ) -> list[int]:
     """
     Interactive multi-select menu.
     User enters comma-separated numbers or 'all'.
     Returns a list of selected indices (0-based).
+    Empty list if 'Back' is selected.
     """
     print()
     print(style(f"  {question}", C.BOLD, C.BWHITE))
@@ -302,6 +308,42 @@ def prompt_multi_choice(
 
     for i, choice in enumerate(choices, start=1):
         print(style(f"  [{i}]", C.BBLUE) + style(f"  {choice}", C.WHITE))
+
+    back_idx = len(choices) + 1
+    if show_back:
+        print(style(f"  [{back_idx}]", C.BYELLOW) + style("  Back", C.WHITE))
+    
+    print()
+    prompt = style("  Enter choices: ", C.CYAN)
+
+    while True:
+        try:
+            raw = input(prompt).strip().lower()
+            if raw == "all":
+                return list(range(len(choices)))
+            
+            if show_back and raw == str(back_idx):
+                return [] # Empty means back
+
+            parts = [p.strip() for p in raw.split(",") if p.strip()]
+            indices = []
+            for p in parts:
+                val = int(p)
+                if 1 <= val <= len(choices):
+                    indices.append(val - 1)
+                else:
+                    raise ValueError()
+            
+            if not indices:
+                raise ValueError()
+            return sorted(list(set(indices)))
+            
+        except (ValueError, EOFError):
+            max_val = back_idx if show_back else len(choices)
+            error(f"Invalid selection. Use 1-{max_val} or 'all'.")
+        except KeyboardInterrupt:
+            print()
+            raise
 
     print()
     prompt = style("  Selection: ", C.CYAN)
