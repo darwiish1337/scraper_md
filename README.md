@@ -17,31 +17,26 @@
 
 *by Mohamed Darwish*
 
-<br/>
+---
 
-![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-22c55e?style=flat-square)
-![Platforms](https://img.shields.io/badge/Platforms-Dynamic-f59e0b?style=flat-square)
-![Products](https://img.shields.io/badge/Dataset-1%2C000%2B_products-6366f1?style=flat-square)
-![Architecture](https://img.shields.io/badge/Architecture-Clean_+_SOLID-0ea5e9?style=flat-square)
+A production-ready web scraping system for collecting structured product data from multiple e-commerce platforms. Built with Python, clean architecture, OOP, and SOLID principles.
 
-<br/>
-
-[Quickstart](#quickstart) · [Platforms](#platforms) · [Features](#key-features) · [CLI](#cli-reference) · [Schema](#dataset-schema)
-
-<br/>
-
-</div>
+Ships with **1,000+ products** across 5 platforms and 10 categories, ready to upload to Kaggle.
 
 ---
 
-## What it does
+## Supported Platforms
 
-Collects structured product data from multiple e-commerce platforms and exports clean, analysis-ready datasets in CSV, Excel, and JSON. Built for data scientists, analysts, and developers who want real-world e-commerce data with a professional CLI experience.
+| Platform | Currency | Mode | Products / Page |
+|----------|----------|------|-----------------|
+| Amazon | USD | Simulated | 20 |
+| Noon | AED | Simulated | 20 |
+| AliExpress | USD | Simulated | 20 |
+| Jumia | EGP | Simulated | 20 |
+| eBay | USD | Simulated | 20 |
+| Books to Scrape | GBP | Live | 20 |
 
-```
-Amazon · Noon · AliExpress · Jumia · eBay · + Custom Sites  →  CSV / Excel / JSON
-```
+> **Simulated** scrapers generate realistic, schema-identical data. The Books scraper hits a real site built for scraping practice. Replace `simulated.py`'s `_fetch_*` methods with real HTTP calls to go fully live on any platform.
 
 ---
 
@@ -56,90 +51,207 @@ The easiest way to get started on Windows:
 # Clone the repository
 git clone https://github.com/YOUR_USERNAME/md-scraper.git
 cd md-scraper
-
-# One-click setup (Windows)
-setup.bat
-
-# One-click run (Windows)
-run.bat
+pip install -r requirements.txt
 ```
 
----
-
-## Key Features
-
-- **🔴 Professional CLI**: Red centered ASCII logo with a clean, interactive interface.
-- **🔄 Dynamic Site Addition**: Add any new e-commerce site directly through the CLI during your session.
-- **💸 Currency Selection**: Choose your preferred output currency (USD, EGP, AED, SAR) before scraping.
-- **🔙 Easy Navigation**: "Back" options in all menus for a smooth interactive experience.
-- **🧹 Data Management**: Built-in option to "Clean Current Data" to reset your local database.
-- **📊 Integrated Analysis**: Instant price statistics and category breakdowns after every run.
-
----
-
-## Platforms
-
-| Platform | Default Currency | Mode |
-|----------|------------------|------|
-| Amazon | USD | Simulated |
-| Noon | AED | Simulated |
-| AliExpress | USD | Simulated |
-| Jumia | EGP | Simulated |
-| eBay | USD | Simulated |
-| **+ Add Your Own** | *User Defined* | Dynamic |
-
----
-
-## CLI Reference
+### Interactive mode (recommended)
 
 ```bash
-# Interactive guided session (Recommended)
-run.bat  # Or: .\Scripts\python main.py
+python main.py
+```
 
-# Direct Scrape Commands
-.\Scripts\python main.py scrape amazon 10
-.\Scripts\python main.py scrape all 5 -f csv
+You will be guided through site selection, category filtering, page count, and export format — with a colored interactive menu.
 
-# Management & Analysis
-.\Scripts\python main.py analyze    # Detailed data analysis
-.\Scripts\python main.py stats      # Quick database summary
-.\Scripts\python main.py export csv # Export existing data
+### Direct commands
+
+```bash
+# Scrape one site
+python main.py scrape amazon 10
+
+# Scrape with category filter
+python main.py scrape noon 5 -c Electronics
+
+# Scrape with keyword
+python main.py scrape ebay 5 -q "wireless headphones"
+
+# Scrape all sites
+python main.py scrape all 5
+
+# Scrape all, export as CSV only
+python main.py scrape all 10 -f csv
+
+# Analyze stored data
+python main.py analyze
+
+# Export existing database to Excel
+python main.py export excel
+
+# Quick stats
+python main.py stats
+
+# List available sites
+python main.py sites
 ```
 
 ---
 
 ## Dataset Schema
 
-Every product record includes:
+Every scraped product includes the following fields:
 
-| Column | Description |
-|--------|-------------|
-| `product_id` | Unique UUID |
-| `title` | Product name |
-| `brand` | Manufacturer |
-| `category` | Product category |
-| `price_current`| Current price |
-| `currency` | Selected currency |
-| `discount_pct` | % off |
-| `availability` | stock status |
-| `scraped_at` | UTC timestamp |
+| Field | Type | Description |
+|-------|------|-------------|
+| `product_id` | UUID | Unique identifier |
+| `external_id` | string | Site-specific product ID |
+| `title` | string | Product name |
+| `brand` | string | Brand name |
+| `category` | string | Product category |
+| `subcategory` | string | Sub-category (when available) |
+| `url` | string | Product page URL |
+| `source` | string | Platform identifier |
+| `price_current` | float | Current selling price |
+| `price_original` | float | Original price before discount |
+| `currency` | string | ISO currency code |
+| `discount_pct` | float | Discount percentage |
+| `has_discount` | bool | True if discounted |
+| `rating_score` | float | Rating 0.0 – 5.0 |
+| `reviews_count` | int | Number of customer reviews |
+| `availability` | string | `in_stock` / `limited` / `out_of_stock` |
+| `description` | string | Product description |
+| `images_count` | int | Number of product images |
+| `first_image` | string | Primary image URL |
+| `tags` | string | Pipe-separated tags |
+| `scraped_at` | datetime | UTC scrape timestamp |
 
 ---
 
 ## Project Structure
 
 ```
-main.py                # Entry point (CLI + Interactive)
-run.bat / setup.bat    # Windows automation scripts
-src/
-├── scrapers/          # Scraper logic & Factory
-├── pipeline/          # Data cleaning & validation
-├── storage/           # SQLite & Exporter logic
-├── analysis/          # Data processing & stats
-└── utils/             # UI, Logger, & HTTP client
-data/
-└── processed/         # Exported CSV/Excel/JSON files
+md-scraper/
+├── main.py                          Entry point — interactive + CLI
+├── requirements.txt
+├── config/
+│   └── settings.py                  All configuration in one place
+├── src/
+│   ├── scrapers/
+│   │   ├── base.py                  Abstract scraper contract (SOLID)
+│   │   ├── books_scraper.py         Live scraper — books.toscrape.com
+│   │   ├── simulated.py             Amazon, Noon, AliExpress, Jumia, eBay
+│   │   └── factory.py               Scraper factory + site registry
+│   ├── models/
+│   │   └── product.py               Domain models: Product, Price, Rating
+│   ├── pipeline/
+│   │   └── cleaner.py               Validation, deduplication, normalisation
+│   ├── storage/
+│   │   ├── sqlite_storage.py        SQLite repository
+│   │   └── exporter.py              CSV, Excel, JSON export
+│   ├── analysis/
+│   │   └── analyzer.py              Price stats, category aggregations
+│   └── utils/
+│       ├── colors.py                Terminal color engine + UI prompts
+│       ├── http_client.py           Anti-detection HTTP client with retry
+│       ├── helpers.py               Price parsing, text cleaning
+│       └── logger.py                File-based structured logging
+├── data/
+│   └── processed/                   Exported datasets (CSV, Excel, JSON)
+├── notebooks/
+│   └── 01_eda.ipynb                 EDA notebook for Kaggle
+└── tests/
+    └── test_models.py               Unit tests
 ```
+
+---
+
+## Architecture
+
+```
+CLI (main.py)
+     │
+     ▼
+Scrapers  ─── BaseScraper (abstract)
+               ├── BooksScraper   (live)
+               └── SimulatedScraper
+                    ├── AmazonScraper
+                    ├── NoonScraper
+                    ├── AliExpressScraper
+                    ├── JumiaScraper
+                    └── EbayScraper
+     │
+     ▼
+Pipeline  ─── cleaner.py (validate, dedup, normalise)
+     │
+     ▼
+Storage   ─── SQLiteStorage (persist + history)
+     │
+     ▼
+Exporter  ─── CSV / Excel / JSON
+```
+
+### SOLID principles applied
+
+- **S** — Each class has one reason to change. `BooksScraper` scrapes. `DataExporter` writes files. `ProductAnalyzer` computes stats.
+- **O** — Add a new site by subclassing `BaseScraper` and registering in `factory.py`. Nothing else changes.
+- **L** — All scrapers are interchangeable wherever `BaseScraper` is expected.
+- **I** — `BaseScraper` exposes only `search_products`, `get_product`, `_parse_product`.
+- **D** — `main.py` depends on `BaseScraper`, not on `AmazonScraper`. `HttpClient` is injected, not constructed inside scrapers.
+
+---
+
+## Adding a New Site
+
+1. Create `src/scrapers/mysite_scraper.py` and subclass `BaseScraper` (or `SimulatedScraper`)
+2. Implement `source`, `base_url`, `search_products`, `get_product`, `_parse_product`
+3. Register in `src/scrapers/factory.py`:
+
+```python
+REGISTRY["mysite"] = SiteInfo(
+    name        = "MySite",
+    description = "Description of the site",
+    currency    = "USD",
+    mode        = "live",
+    scraper_cls = MySiteScraper,
+)
+```
+
+4. Run: `python main.py scrape mysite 5`
+
+No other files change.
+
+---
+
+## Configuration
+
+Override any setting via environment variable:
+
+```bash
+export SCRAPER_MAX_PAGES=20
+export SCRAPER_DELAY_MIN=2.0
+export SCRAPER_DELAY_MAX=5.0
+export LOG_LEVEL=DEBUG
+python main.py scrape all 20
+```
+
+---
+
+## Uploading to Kaggle
+
+1. Run `python main.py scrape all 10 -f csv`
+2. Find the CSV in `data/processed/`
+3. Go to [kaggle.com/datasets/new](https://www.kaggle.com/datasets/new)
+4. Upload the CSV
+5. Use `notebooks/01_eda.ipynb` as the starter notebook
+
+Suggested tags: `e-commerce`, `prices`, `web scraping`, `retail`, `multi-platform`, `classification`, `regression`
+
+---
+
+## Ethical Use
+
+- Always check `robots.txt` before targeting any site
+- The built-in delays (1.5 – 4.0 s between requests) are intentional — do not remove them
+- Do not use scraped data for spam, resale, or any purpose that violates a site's terms of service
+- The simulated scrapers generate synthetic data and make no real HTTP requests
 
 ---
 
