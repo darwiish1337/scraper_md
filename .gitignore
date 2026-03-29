@@ -48,9 +48,9 @@ coverage.xml
 # Data and Logs
 logs/
 *.log
-data/processed/*
-data/scraper.db
-!data/processed/.gitkeep
+data/
+!data/.gitkeep
+
 
 # IDEs
 .vscode/
