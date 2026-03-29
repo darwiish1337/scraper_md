@@ -2,7 +2,7 @@
 
 <br/>
 
-<pre>
+<pre align="center">
 ███╗   ███╗      ██████╗
 ████╗ ████║      ██╔══██╗
 ██╔████╔██║      ██║  ██║
@@ -11,114 +11,131 @@
 ╚═╝     ╚═╝      ╚═════╝
 </pre>
 
-### M-D E-Commerce Scraper
+<h2>M-D E-Commerce Scraper</h2>
+<p><b>Structured product data collection across multiple e-commerce platforms</b></p>
+<p><i>by Mohamed Darwish</i></p>
 
-**E-Commerce Data Collection & Intelligence Tool**
+<br/>
 
-*by Mohamed Darwish*
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)](LICENSE)
+[![Platforms](https://img.shields.io/badge/Platforms-5_Sites-f59e0b?style=for-the-badge&logo=shopify&logoColor=white)](#platforms)
+[![Dataset](https://img.shields.io/badge/Dataset-1%2C000%2B_Products-6366f1?style=for-the-badge&logo=databricks&logoColor=white)](#dataset-schema)
+
+<br/>
+
+[![Quickstart](https://img.shields.io/badge/─────_Quickstart_─────-0f172a?style=for-the-badge)](#quickstart)
+[![CLI](https://img.shields.io/badge/─────_CLI_Reference_─────-0f172a?style=for-the-badge)](#cli-reference)
+[![Schema](https://img.shields.io/badge/─────_Dataset_Schema_─────-0f172a?style=for-the-badge)](#dataset-schema)
+[![Architecture](https://img.shields.io/badge/─────_Architecture_─────-0f172a?style=for-the-badge)](#architecture)
+
+<br/>
+
+</div>
 
 ---
 
-A production-ready web scraping system for collecting structured product data from multiple e-commerce platforms. Built with Python, clean architecture, OOP, and SOLID principles.
+## Overview
 
-Ships with **1,000+ products** across 5 platforms and 10 categories, ready to upload to Kaggle.
+A production-ready web scraping system that collects structured product data from five e-commerce platforms and exports clean, analysis-ready datasets in CSV, Excel, and JSON.
+
+Built with clean architecture, OOP, and SOLID principles — designed to be extended, not rewritten.
+
+```
+Amazon · Noon · AliExpress · Jumia · eBay
+              ↓
+   Validate · Deduplicate · Normalise
+              ↓
+     CSV  ·  Excel  ·  JSON  ·  SQLite
+```
 
 ---
 
-## Supported Platforms
+## Platforms
 
-| Platform | Currency | Mode | Products / Page |
-|----------|----------|------|-----------------|
-| Amazon | USD | Simulated | 20 |
-| Noon | AED | Simulated | 20 |
-| AliExpress | USD | Simulated | 20 |
-| Jumia | EGP | Simulated | 20 |
-| eBay | USD | Simulated | 20 |
-| Books to Scrape | GBP | Live | 20 |
+| Platform | Currency | Mode |
+|----------|----------|------|
+| Amazon | USD | Simulated |
+| Noon | AED | Simulated |
+| AliExpress | USD | Simulated |
+| Jumia | EGP | Simulated |
+| eBay | USD | Simulated |
+| Books to Scrape | GBP | Live |
 
-> **Simulated** scrapers generate realistic, schema-identical data. The Books scraper hits a real site built for scraping practice. Replace `simulated.py`'s `_fetch_*` methods with real HTTP calls to go fully live on any platform.
+> **Simulated** scrapers produce realistic, schema-identical data without hitting real servers. Swap in real HTTP calls by replacing the `_fetch_*` methods in `simulated.py`. **Live** scrapers make actual HTTP requests to sites that explicitly allow scraping.
 
 ---
 
 ## Quickstart
 
-The easiest way to get started on Windows:
-
-1. **Setup**: Run `setup.bat` to create the virtual environment and install all dependencies automatically.
-2. **Run**: Run `run.bat` to launch the interactive scraper with the branded red UI.
-
 ```bash
-# Clone the repository
 git clone https://github.com/YOUR_USERNAME/md-scraper.git
 cd md-scraper
 pip install -r requirements.txt
 ```
 
-### Interactive mode (recommended)
+**Interactive mode** — guided menu for site, category, volume, and format:
 
 ```bash
 python main.py
 ```
 
-You will be guided through site selection, category filtering, page count, and export format — with a colored interactive menu.
-
-### Direct commands
+**One command** — scrape all platforms, get everything:
 
 ```bash
-# Scrape one site
-python main.py scrape amazon 10
-
-# Scrape with category filter
-python main.py scrape noon 5 -c Electronics
-
-# Scrape with keyword
-python main.py scrape ebay 5 -q "wireless headphones"
-
-# Scrape all sites
-python main.py scrape all 5
-
-# Scrape all, export as CSV only
 python main.py scrape all 10 -f csv
+```
 
-# Analyze stored data
-python main.py analyze
+---
 
-# Export existing database to Excel
-python main.py export excel
+## CLI Reference
 
-# Quick stats
-python main.py stats
+```bash
+# ── Interactive ───────────────────────────────────────────────
+python main.py
 
-# List available sites
-python main.py sites
+# ── Scraping ──────────────────────────────────────────────────
+python main.py scrape amazon 10                  # one platform
+python main.py scrape noon 5 -c Electronics      # with category
+python main.py scrape ebay 5 -q "headphones"     # with keyword
+python main.py scrape all 10                     # all platforms
+python main.py scrape all 10 -f csv              # CSV output only
+python main.py scrape all 10 -f excel            # Excel output only
+python main.py scrape all 10 -f json             # JSON output only
+
+# ── Data ──────────────────────────────────────────────────────
+python main.py analyze                           # full analysis report
+python main.py stats                             # quick database stats
+python main.py export csv                        # export stored data
+python main.py sites                             # list platforms
 ```
 
 ---
 
 ## Dataset Schema
 
-Every scraped product includes the following fields:
+21 columns per record:
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Column | Type | Description |
+|--------|------|-------------|
 | `product_id` | UUID | Unique identifier |
 | `external_id` | string | Site-specific product ID |
 | `title` | string | Product name |
 | `brand` | string | Brand name |
 | `category` | string | Product category |
-| `subcategory` | string | Sub-category (when available) |
+| `subcategory` | string | Sub-category |
 | `url` | string | Product page URL |
 | `source` | string | Platform identifier |
 | `price_current` | float | Current selling price |
-| `price_original` | float | Original price before discount |
+| `price_original` | float | Pre-discount price |
 | `currency` | string | ISO currency code |
 | `discount_pct` | float | Discount percentage |
 | `has_discount` | bool | True if discounted |
-| `rating_score` | float | Rating 0.0 – 5.0 |
-| `reviews_count` | int | Number of customer reviews |
+| `rating_score` | float | Rating 0.0–5.0 |
+| `reviews_count` | int | Number of reviews |
 | `availability` | string | `in_stock` / `limited` / `out_of_stock` |
 | `description` | string | Product description |
-| `images_count` | int | Number of product images |
+| `images_count` | int | Image count |
 | `first_image` | string | Primary image URL |
 | `tags` | string | Pipe-separated tags |
 | `scraped_at` | datetime | UTC scrape timestamp |
@@ -129,36 +146,36 @@ Every scraped product includes the following fields:
 
 ```
 md-scraper/
-├── main.py                          Entry point — interactive + CLI
+├── main.py                      Entry point — interactive + CLI
 ├── requirements.txt
 ├── config/
-│   └── settings.py                  All configuration in one place
+│   └── settings.py              All settings in one place
 ├── src/
 │   ├── scrapers/
-│   │   ├── base.py                  Abstract scraper contract (SOLID)
-│   │   ├── books_scraper.py         Live scraper — books.toscrape.com
-│   │   ├── simulated.py             Amazon, Noon, AliExpress, Jumia, eBay
-│   │   └── factory.py               Scraper factory + site registry
+│   │   ├── base.py              Abstract contract — BaseScraper
+│   │   ├── books_scraper.py     Live scraper
+│   │   ├── simulated.py         Amazon, Noon, AliExpress, Jumia, eBay
+│   │   └── factory.py           Registry — register new sites here only
 │   ├── models/
-│   │   └── product.py               Domain models: Product, Price, Rating
+│   │   └── product.py           Domain models: Product, Price, Rating
 │   ├── pipeline/
-│   │   └── cleaner.py               Validation, deduplication, normalisation
+│   │   └── cleaner.py           Validate, deduplicate, normalise
 │   ├── storage/
-│   │   ├── sqlite_storage.py        SQLite repository
-│   │   └── exporter.py              CSV, Excel, JSON export
+│   │   ├── sqlite_storage.py    SQLite repository
+│   │   └── exporter.py          CSV, Excel, JSON export
 │   ├── analysis/
-│   │   └── analyzer.py              Price stats, category aggregations
+│   │   └── analyzer.py          Price stats, category aggregations
 │   └── utils/
-│       ├── colors.py                Terminal color engine + UI prompts
-│       ├── http_client.py           Anti-detection HTTP client with retry
-│       ├── helpers.py               Price parsing, text cleaning
-│       └── logger.py                File-based structured logging
+│       ├── colors.py            Terminal UI — colors, prompts, progress
+│       ├── http_client.py       Retry + rate limiting + user-agent rotation
+│       ├── helpers.py           Price parsing, text cleaning
+│       └── logger.py            Structured file logging
 ├── data/
-│   └── processed/                   Exported datasets (CSV, Excel, JSON)
+│   └── processed/               Exported datasets
 ├── notebooks/
-│   └── 01_eda.ipynb                 EDA notebook for Kaggle
+│   └── 01_eda.ipynb             Exploratory analysis notebook
 └── tests/
-    └── test_models.py               Unit tests
+    └── test_models.py           Unit tests
 ```
 
 ---
@@ -166,55 +183,56 @@ md-scraper/
 ## Architecture
 
 ```
-CLI (main.py)
+main.py  (CLI + interactive)
      │
-     ▼
-Scrapers  ─── BaseScraper (abstract)
-               ├── BooksScraper   (live)
-               └── SimulatedScraper
-                    ├── AmazonScraper
-                    ├── NoonScraper
-                    ├── AliExpressScraper
-                    ├── JumiaScraper
-                    └── EbayScraper
+     ├── scrapers/
+     │    BaseScraper (abstract)
+     │    ├── BooksScraper        live
+     │    └── SimulatedScraper
+     │         ├── AmazonScraper
+     │         ├── NoonScraper
+     │         ├── AliExpressScraper
+     │         ├── JumiaScraper
+     │         └── EbayScraper
      │
-     ▼
-Pipeline  ─── cleaner.py (validate, dedup, normalise)
+     ├── pipeline/cleaner.py      validate · dedup · normalise
      │
-     ▼
-Storage   ─── SQLiteStorage (persist + history)
+     ├── storage/sqlite_storage   persist
      │
-     ▼
-Exporter  ─── CSV / Excel / JSON
+     └── storage/exporter         CSV · Excel · JSON
 ```
 
-### SOLID principles applied
+**SOLID in practice:**
 
-- **S** — Each class has one reason to change. `BooksScraper` scrapes. `DataExporter` writes files. `ProductAnalyzer` computes stats.
-- **O** — Add a new site by subclassing `BaseScraper` and registering in `factory.py`. Nothing else changes.
-- **L** — All scrapers are interchangeable wherever `BaseScraper` is expected.
-- **I** — `BaseScraper` exposes only `search_products`, `get_product`, `_parse_product`.
-- **D** — `main.py` depends on `BaseScraper`, not on `AmazonScraper`. `HttpClient` is injected, not constructed inside scrapers.
+- **S** — `BooksScraper` scrapes. `DataExporter` writes files. `ProductAnalyzer` computes stats. No class does two things.
+- **O** — New platform = new subclass + one registry line. Nothing else changes.
+- **L** — Every scraper is a valid `BaseScraper`. They are fully interchangeable.
+- **I** — `BaseScraper` exposes only three methods: `search_products`, `get_product`, `_parse_product`.
+- **D** — `main.py` depends on `BaseScraper`, not `AmazonScraper`. `HttpClient` is injected, not constructed inside scrapers.
 
 ---
 
-## Adding a New Site
-
-1. Create `src/scrapers/mysite_scraper.py` and subclass `BaseScraper` (or `SimulatedScraper`)
-2. Implement `source`, `base_url`, `search_products`, `get_product`, `_parse_product`
-3. Register in `src/scrapers/factory.py`:
+## Adding a New Platform
 
 ```python
+# 1. src/scrapers/mysite_scraper.py
+class MySiteScraper(SimulatedScraper):
+    @property
+    def source(self) -> ScraperSource:
+        return ScraperSource.CUSTOM
+
+# 2. src/scrapers/factory.py
 REGISTRY["mysite"] = SiteInfo(
     name        = "MySite",
-    description = "Description of the site",
+    description = "Description",
     currency    = "USD",
     mode        = "live",
     scraper_cls = MySiteScraper,
 )
-```
 
-4. Run: `python main.py scrape mysite 5`
+# 3.
+# python main.py scrape mysite 10
+```
 
 No other files change.
 
@@ -222,36 +240,23 @@ No other files change.
 
 ## Configuration
 
-Override any setting via environment variable:
-
 ```bash
 export SCRAPER_MAX_PAGES=20
 export SCRAPER_DELAY_MIN=2.0
 export SCRAPER_DELAY_MAX=5.0
 export LOG_LEVEL=DEBUG
+
 python main.py scrape all 20
 ```
 
 ---
 
-## Uploading to Kaggle
-
-1. Run `python main.py scrape all 10 -f csv`
-2. Find the CSV in `data/processed/`
-3. Go to [kaggle.com/datasets/new](https://www.kaggle.com/datasets/new)
-4. Upload the CSV
-5. Use `notebooks/01_eda.ipynb` as the starter notebook
-
-Suggested tags: `e-commerce`, `prices`, `web scraping`, `retail`, `multi-platform`, `classification`, `regression`
-
----
-
 ## Ethical Use
 
-- Always check `robots.txt` before targeting any site
-- The built-in delays (1.5 – 4.0 s between requests) are intentional — do not remove them
-- Do not use scraped data for spam, resale, or any purpose that violates a site's terms of service
-- The simulated scrapers generate synthetic data and make no real HTTP requests
+- Check `robots.txt` before targeting any site
+- The built-in request delays (1.5–4.0 s) are intentional — do not remove them
+- Simulated scrapers make no real HTTP requests
+- Do not use collected data in ways that violate a platform's terms of service
 
 ---
 
@@ -263,6 +268,10 @@ MIT — see [LICENSE](LICENSE)
 
 <div align="center">
 
-*M-D Web Scraper — Mohamed Darwish*
+<br/>
+
+*M-D E-Commerce Scraper — Mohamed Darwish*
+
+<br/>
 
 </div>
