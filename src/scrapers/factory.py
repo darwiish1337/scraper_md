@@ -15,6 +15,9 @@ from src.scrapers.simulated import (
     AmazonScraper, NoonScraper, AliExpressScraper,
     JumiaScraper, EbayScraper,
 )
+from src.scrapers.custom_sites import (
+    load_custom_sites, save_custom_site, CustomSiteData
+)
 from src.utils.http_client import HttpClient
 from src.utils.logger import get_logger
 
@@ -71,19 +74,40 @@ REGISTRY: dict[str, SiteInfo] = {
 }
 
 
+def load_saved_custom_sites() -> None:
+    """
+    Load custom sites that were previously added by users.
+    This is called automatically at startup to restore user-added sites.
+    Sites are saved to data/custom_sites.json and persist across restarts.
+    """
+    custom = load_custom_sites()
+    for key, site_data in custom.items():
+        REGISTRY[key] = SiteInfo(
+            name        = site_data.name,
+            description = f"Custom: {site_data.url}",
+            currency    = site_data.currency,
+            mode        = "simulated",
+            scraper_cls = AmazonScraper,
+        )
+    if custom:
+        logger.info(f"Loaded {len(custom)} custom sites from disk")
+
+
 def add_custom_site(name: str, url: str, currency: str = "USD") -> str:
-    """Dynamically register a new e-commerce site (simulated for now)."""
+    """Dynamically register a new e-commerce site and save it."""
     key = name.lower().replace(" ", "_")
     
-    # In a real app, we would use a GenericScraper that parses the URL.
-    # For this version, we'll map it to a SimulatedScraper to ensure it works.
     REGISTRY[key] = SiteInfo(
         name        = name,
         description = f"Custom site: {url}",
         currency    = currency,
         mode        = "simulated",
-        scraper_cls = AmazonScraper, # Using Amazon as a base template
+        scraper_cls = AmazonScraper,
     )
+    
+    # Save to disk so it persists
+    save_custom_site(key, CustomSiteData(name=name, url=url, currency=currency))
+    
     return key
 
 

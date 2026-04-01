@@ -46,6 +46,7 @@ coverage.xml
 .ipynb_checkpoints
 
 # Data and Logs
+data/
 logs/
 *.log
 data/

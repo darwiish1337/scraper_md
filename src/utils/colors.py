@@ -306,9 +306,11 @@ def prompt_multi_choice(
     dim("  Comma-separated numbers, or 'all'")
     print()
 
+    # Display all available choices
     for i, choice in enumerate(choices, start=1):
         print(style(f"  [{i}]", C.BBLUE) + style(f"  {choice}", C.WHITE))
 
+    # Add "Back" option if requested
     back_idx = len(choices) + 1
     if show_back:
         print(style(f"  [{back_idx}]", C.BYELLOW) + style("  Back", C.WHITE))
@@ -316,15 +318,20 @@ def prompt_multi_choice(
     print()
     prompt = style("  Enter choices: ", C.CYAN)
 
+    # Handle user input with validation
     while True:
         try:
             raw = input(prompt).strip().lower()
+            
+            # Special case: "all" selects everything
             if raw == "all":
                 return list(range(len(choices)))
             
+            # Handle "Back" option
             if show_back and raw == str(back_idx):
-                return [] # Empty means back
-
+                return []
+            
+            # Parse comma-separated selections
             parts = [p.strip() for p in raw.split(",") if p.strip()]
             indices = []
             for p in parts:
@@ -334,46 +341,16 @@ def prompt_multi_choice(
                 else:
                     raise ValueError()
             
+            # Ensure at least one selection
             if not indices:
                 raise ValueError()
+            
             return sorted(list(set(indices)))
             
         except (ValueError, EOFError):
             max_val = back_idx if show_back else len(choices)
             error(f"Invalid selection. Use 1-{max_val} or 'all'.")
         except KeyboardInterrupt:
-            print()
-            raise
-
-    print()
-    prompt = style("  Selection: ", C.CYAN)
-
-    while True:
-        try:
-            raw = input(prompt).strip().lower()
-            if raw == "all":
-                return list(range(len(choices)))
-            parts = [p.strip() for p in raw.split(",") if p.strip()]
-            indices = []
-            valid = True
-            for p in parts:
-                try:
-                    v = int(p)
-                    if 1 <= v <= len(choices):
-                        indices.append(v - 1)
-                    else:
-                        error(f"{v} is out of range.")
-                        valid = False
-                        break
-                except ValueError:
-                    error(f"'{p}' is not a number.")
-                    valid = False
-                    break
-            if valid and indices:
-                return indices
-            if valid:
-                error("Select at least one option.")
-        except (EOFError, KeyboardInterrupt):
             print()
             raise
 
