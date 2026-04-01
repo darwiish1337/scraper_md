@@ -171,8 +171,6 @@ md-scraper/
 │       ├── http_client.py       Retry + rate limiting + user-agent rotation
 │       ├── helpers.py           Price parsing, text cleaning
 │       └── logger.py            Structured file logging
-├── data/
-│   └── processed/               Exported datasets
 ├── notebooks/
 │   └── 01_eda.ipynb             Exploratory analysis notebook
 ├── tests/
