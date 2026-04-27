@@ -28,7 +28,7 @@ settings.validate()                 # Validate all ranges
 
 | Setting | Env Variable | Default | Min | Max | Description |
 |---------|--------------|---------|-----|-----|-------------|
-| `max_pages` | `SCRAPER_MAX_PAGES` | `5` | 1 | 500 | Pages per scrape request |
+| `max_pages` | `SCRAPER_MAX_PAGES` | `5` | 1 | 1000 | Pages per scrape request |
 | `delay_min` | `SCRAPER_DELAY_MIN` | `1.5` | 0.5 | 10 | Minimum delay (sec) |
 | `delay_max` | `SCRAPER_DELAY_MAX` | `4.0` | 1 | 60 | Maximum delay (sec) |
 | `timeout` | `SCRAPER_TIMEOUT` | `30` | 1 | 300 | Request timeout (sec) |

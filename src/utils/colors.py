@@ -70,6 +70,9 @@ class C:
     BCYAN   = _c("96")
     BWHITE  = _c("97")
 
+    # Custom Colors (Claude Code style)
+    PEACH   = "\033[38;5;209m" if USE_COLOR else ""
+    
     # Background
     BG_BLACK  = _c("40")
     BG_BLUE   = _c("44")
@@ -85,7 +88,12 @@ def style(text: str, *codes: str) -> str:
 
 
 def terminal_width() -> int:
-    return shutil.get_terminal_size((100, 24)).columns
+    """Get the current terminal width, with a safe fallback."""
+    try:
+        # Get the absolute width. We use the full width to fill the screen.
+        return shutil.get_terminal_size((100, 24)).columns
+    except Exception:
+        return 80
 
 
 # ---------------------------------------------------------------------------
@@ -94,73 +102,93 @@ def terminal_width() -> int:
 
 def print_header() -> None:
     """
-    Print the branded M-D scraper header with ASCII art.
-    Shown once at startup.
+    Print the branded M-D scraper header in Claude Code style.
     """
-    w     = min(terminal_width(), 80)
-    bar   = "─" * w
-
+    w_term = terminal_width()
+    box_w = 40
+    indent = _get_menu_indent(box_w)
+    
+    # Claude-style ASCII (Blocky/Solid)
     logo_lines = [
-        " ███╗   ███╗      ██████╗ ",
-        " ████╗ ████║      ██╔══██╗",
-        " ██╔████╔██║      ██║  ██║",
-        " ██║╚██╔╝██║      ██║  ██║",
-        " ██║ ╚═╝ ██║      ██████╔╝",
-        " ╚═╝     ╚═╝      ╚═════╝ "
+        "  __  __      _____  ",
+        " |  \/  |    |  __ \ ",
+        " | \  / |    | |  | |",
+        " | |\/| |    | |  | |",
+        " | |  | |    | |__| |",
+        " |_|  |_|    |_____/ "
     ]
 
     print()
+    # 1. Welcome box
+    welcome_text = " * Welcome to M-D "
+    top_border = " " * 4 + "╭" + "─" * (len(welcome_text) + 2) + "╮"
+    mid_text   = " " * 4 + "│ " + style(welcome_text, C.BOLD, C.BWHITE) + " │"
+    bot_border = " " * 4 + "╰" + "─" * (len(welcome_text) + 2) + "╯"
+    
+    print(indent + top_border)
+    print(indent + mid_text)
+    print(indent + bot_border)
+    print()
+
+    # 2. Big Logo in Peach
     for line in logo_lines:
-        print(style(line.center(w), C.BRED, C.BOLD))
+        print(indent + style(line, C.PEACH, C.BOLD))
     
     print()
-    print(style(" M-D E-Commerce Scraper ".center(w), C.BOLD, C.BWHITE))
-    print(style("E-Commerce Data Collection & Intelligence Tool".center(w), C.CYAN))
-    print(style("by Mohamed Darwish".center(w), C.DIM, C.WHITE))
-    print(style(bar, C.CYAN, C.DIM))
+    # 3. Footer hint
+    print(indent + style(" Press ", C.DIM) + style("Enter", C.BOLD, C.BWHITE) + style(" to continue", C.DIM))
     print()
 
 
 def print_section(title: str) -> None:
-    """Print a section separator with a label."""
-    w   = min(terminal_width(), 80)
-    pad = max(0, (w - len(title) - 4) // 2)
-    print(
-        "\n" +
-        style(" " * pad + "  " + title + "  " + " " * pad, C.BOLD, C.BBLUE) +
-        "\n"
-    )
+    """Print a simple, clean section title in Claude style."""
+    indent = _get_menu_indent(60)
+    print("\n" + indent + style(title, C.PEACH, C.BOLD) + "\n")
 
 
 def ok(msg: str) -> None:
-    print(style("  ✓  ", C.BGREEN) + msg)
-
+    """Print success message without emoji."""
+    indent = _get_menu_indent(len(msg) + 4)
+    print(indent + style("DONE", C.PEACH, C.BOLD) + " " + style(msg, C.WHITE))
 
 def info(msg: str) -> None:
-    print(style("  →  ", C.CYAN) + msg)
-
+    """Print info message without emoji."""
+    indent = _get_menu_indent(len(msg) + 4)
+    print(indent + style("INFO", C.BCYAN, C.BOLD) + " " + style(msg, C.DIM))
 
 def warn(msg: str) -> None:
-    print(style("  !  ", C.BYELLOW) + msg)
-
+    """Print warning message without emoji."""
+    indent = _get_menu_indent(len(msg) + 4)
+    print(indent + style("WARN", C.BYELLOW, C.BOLD) + " " + style(msg, C.BYELLOW))
 
 def error(msg: str) -> None:
-    print(style("  ✗  ", C.BRED) + msg)
+    """Print error message without emoji."""
+    indent = _get_menu_indent(len(msg) + 4)
+    print(indent + style("FAIL", C.BRED, C.BOLD) + " " + style(msg, C.BRED))
 
 
 def dim(msg: str) -> None:
-    print(style("     " + msg, C.DIM))
+    indent = _get_menu_indent(60)
+    print(indent + style("     " + msg, C.DIM))
 
 
 def bold(msg: str) -> None:
-    print(style(msg, C.BOLD))
+    indent = _get_menu_indent(60)
+    print(indent + style(msg, C.BOLD))
 
 
-def label_value(label: str, value: str, label_width: int = 22) -> None:
-    """Print a key: value line with consistent alignment."""
-    l = style(f"  {label:<{label_width}}", C.DIM, C.WHITE)
-    v = style(str(value), C.BWHITE)
-    print(l + v)
+def label_value(label: str, value: str, label_width: int = 25) -> None:
+    """Print a key: value line with consistent alignment and responsive indent."""
+    indent = _get_menu_indent(60)
+    l = style(f"{label}:", C.DIM, C.WHITE)
+    # Align the label within a fixed width for the key part
+    key_part = f"{l:<{label_width + 10}}" # +10 to account for ANSI codes in length calculation
+    
+    # We manually calculate padding because 'style' adds invisible characters
+    label_plain = f"{label}:"
+    padding = " " * max(0, label_width - len(label_plain))
+    
+    print(f"{indent}{style(label_plain, C.DIM, C.WHITE)}{padding} {style(str(value), C.BWHITE)}")
 
 
 def print_table(
@@ -182,8 +210,11 @@ def print_table(
             for i, h in enumerate(headers)
         ]
 
-    sep = style("  " + "  ".join("─" * w for w in col_widths), C.DIM)
-    header_row = "  " + "  ".join(
+    table_width = sum(col_widths) + ((len(headers) - 1) * 2)
+    indent = _get_menu_indent(table_width)
+
+    sep = indent + style("  ".join("─" * w for w in col_widths), C.DIM)
+    header_row = indent + "  ".join(
         style(str(h).ljust(col_widths[i]), C.BOLD, C.CYAN)
         for i, h in enumerate(headers)
     )
@@ -193,13 +224,27 @@ def print_table(
     print(sep)
 
     for row in rows:
-        line = "  " + "  ".join(
+        line = indent + "  ".join(
             str(row[i]).ljust(col_widths[i]) if i < len(row) else " " * col_widths[i]
             for i in range(len(headers))
         )
         print(line)
 
     print(sep)
+
+
+def _get_menu_indent(content_width: int = 60) -> str:
+    """
+    Calculate indent to center content. 
+    Adjusts dynamically to terminal width for a responsive feel.
+    """
+    w = terminal_width()
+    # On very small screens, use minimal padding
+    if w < 60:
+        return " " * 2
+    # On medium/large screens, center the content but keep a reasonable width
+    pad = max(2, (w - content_width) // 2)
+    return " " * pad
 
 
 def prompt_choice(
@@ -212,23 +257,27 @@ def prompt_choice(
     Interactive numbered menu. Returns the selected index (0-based).
     Index -1 indicates 'Back' selection.
     """
+    longest_choice = max(len(c) for c in choices)
+    menu_width = max(len(question), longest_choice + 12)
+    indent = _get_menu_indent(menu_width)
+
     print()
-    print(style(f"  {question}", C.BOLD, C.BWHITE))
+    print(indent + style(f"{question}", C.BOLD, C.BWHITE))
     print()
 
     for i, choice in enumerate(choices, start=1):
-        num  = style(f"  [{i}]", C.BBLUE)
+        num  = style(f"[{i}]", C.PEACH) # Use peach for numbers too
         text = style(f"  {choice}", C.WHITE)
         star = style(" (default)", C.DIM) if default is not None and i - 1 == default else ""
-        print(f"{num}{text}{star}")
+        print(f"{indent}{num}{text}{star}")
 
     back_idx = len(choices) + 1
     if show_back:
-        print(style(f"  [{back_idx}]", C.BYELLOW) + style("  Back", C.WHITE))
+        print(indent + style(f"[{back_idx}]", C.BYELLOW) + style("  Back", C.WHITE))
 
     print()
     default_hint = f" [{default + 1}]" if default is not None else ""
-    prompt = style(f"  Enter choice{default_hint}: ", C.CYAN)
+    prompt = indent + style(f"Enter choice{default_hint}: ", C.PEACH)
 
     while True:
         try:
@@ -257,40 +306,36 @@ def prompt_multi_choice(
     """
     Interactive multi-select menu.
     User enters comma-separated numbers or 'all'.
-    Returns a list of selected indices (0-based).
-    Empty list if 'Back' is selected.
     """
+    longest_choice = max(len(c) for c in choices)
+    menu_width = max(len(question), longest_choice + 12)
+    indent = _get_menu_indent(menu_width)
+
     print()
-    print(style(f"  {question}", C.BOLD, C.BWHITE))
-    dim("  Comma-separated numbers, or 'all'")
+    print(indent + style(f"{question}", C.BOLD, C.BWHITE))
+    print(indent + style("Comma-separated numbers, or 'all'", C.DIM))
     print()
 
-    # Display all available choices
     for i, choice in enumerate(choices, start=1):
-        print(style(f"  [{i}]", C.BBLUE) + style(f"  {choice}", C.WHITE))
+        num  = style(f"[{i}]", C.PEACH)
+        text = style(f"  {choice}", C.WHITE)
+        print(indent + num + text)
 
-    # Add "Back" option if requested
     back_idx = len(choices) + 1
     if show_back:
-        print(style(f"  [{back_idx}]", C.BYELLOW) + style("  Back", C.WHITE))
+        print(indent + style(f"[{back_idx}]", C.BYELLOW) + style("  Back", C.WHITE))
     
     print()
-    prompt = style("  Enter choices: ", C.CYAN)
+    prompt = indent + style("Enter choices: ", C.PEACH)
 
-    # Handle user input with validation
     while True:
         try:
             raw = input(prompt).strip().lower()
-            
-            # Special case: "all" selects everything
             if raw == "all":
                 return list(range(len(choices)))
-            
-            # Handle "Back" option
             if show_back and raw == str(back_idx):
                 return []
             
-            # Parse comma-separated selections
             parts = [p.strip() for p in raw.split(",") if p.strip()]
             indices = []
             for p in parts:
@@ -299,13 +344,9 @@ def prompt_multi_choice(
                     indices.append(val - 1)
                 else:
                     raise ValueError()
-            
-            # Ensure at least one selection
             if not indices:
                 raise ValueError()
-            
             return sorted(list(set(indices)))
-            
         except (ValueError, EOFError):
             max_val = back_idx if show_back else len(choices)
             error(f"Invalid selection. Use 1-{max_val} or 'all'.")
@@ -320,8 +361,9 @@ def prompt_text(
     allow_empty:  bool = False,
 ) -> str:
     """Prompt for free-text input with an optional default."""
+    indent = _get_menu_indent(50)
     default_hint = style(f" [{default}]", C.DIM) if default else ""
-    prompt = style(f"  {question}{default_hint}: ", C.CYAN)
+    prompt = indent + style(f"{question}{default_hint}: ", C.PEACH)
     print()
     while True:
         try:
@@ -343,7 +385,8 @@ def prompt_int(
     max_val:  int = 9999,
 ) -> int:
     """Prompt for an integer within a range."""
-    prompt = style(f"  {question} [{default}]: ", C.CYAN)
+    indent = _get_menu_indent(50)
+    prompt = indent + style(f"{question} [{default}]: ", C.PEACH)
     print()
     while True:
         try:
@@ -363,8 +406,9 @@ def prompt_int(
 
 def confirm(question: str, default: bool = True) -> bool:
     """Y/N confirmation prompt."""
+    indent = _get_menu_indent(50)
     hint   = style("[Y/n]" if default else "[y/N]", C.DIM)
-    prompt = style(f"  {question} ", C.CYAN) + hint + " "
+    prompt = indent + style(f"{question} ", C.PEACH) + hint + " "
     print()
     while True:
         try:

@@ -40,7 +40,7 @@ class MyScraper(BaseScraper):
         
         Args:
             query: Search term (e.g., "laptop")
-            pages: Number of pages to fetch
+            pages: Number of pages to fetch (max 1000)
         
         Returns:
             SearchResult with products list and total count

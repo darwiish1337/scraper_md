@@ -78,8 +78,8 @@ class Settings:
         Validate settings are within acceptable ranges.
         Raises ValueError if any setting is invalid.
         """
-        if self.max_pages < 1 or self.max_pages > 500:
-            raise ValueError(f"max_pages must be between 1 and 500, got {self.max_pages}")
+        if self.max_pages < 1 or self.max_pages > 1000:
+            raise ValueError(f"max_pages must be between 1 and 1000, got {self.max_pages}")
         
         if self.delay_min < 0 or self.delay_max < 0:
             raise ValueError("Delays cannot be negative")

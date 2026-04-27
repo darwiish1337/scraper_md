@@ -60,7 +60,7 @@ from src.analysis.analyzer import ProductAnalyzer
 from src.utils.http_client import HttpClient
 from src.utils.logger import configure_logging, get_logger
 from src.utils.colors import (
-    C, style, print_header, print_section, ok, info, warn, error, dim,
+    C, style, terminal_width, print_header, print_section, ok, info, warn, error, dim,
     label_value, print_table,
     prompt_choice, prompt_multi_choice, prompt_text, prompt_int, confirm,
 )
@@ -538,7 +538,7 @@ def _interactive_scrape() -> None:
         "Pages per site (20 products/page)",
         default = 5,
         min_val = 1,
-        max_val = 200,
+        max_val = 1000,
     )
     info(f"Estimated products: ~{max_pages * 20 * len(selected_keys):,}")
 
@@ -606,19 +606,28 @@ def print_summary_box(products) -> None:
     src    = len(set(p.source.value for p in products))
 
     import statistics as st
-    w  = 50
-    hr = style("  " + "─" * w, C.DIM)
+    w_term = terminal_width()
+    w_box  = 60
+    indent = " " * max(4, (w_term - w_box) // 2)
+    hr     = style(indent + "─" * w_box, C.PEACH)
 
+    print()
     print(hr)
-    print(style(f"  {'Scrape complete':^{w}}", C.BOLD, C.BWHITE))
+    print(style(f"{indent}{' SCRAPE COMPLETE ':─^{w_box}}", C.BOLD, C.PEACH))
     print(hr)
-    label_value("Products",    f"{len(products):,}")
-    label_value("Sources",     str(src))
-    label_value("Categories",  str(cats))
+    
+    # Use label_value but with custom indent if possible, or just print manually
+    def box_line(l, v):
+        print(f"{indent}  {style(l+':', C.DIM):<25} {style(v, C.BWHITE)}")
+
+    box_line("Total Products", f"{len(products):,}")
+    box_line("Unique Sources",  str(src))
+    box_line("Categories",      str(cats))
     if prices:
-        label_value("Avg price",   f"{st.mean(prices):.2f}")
-        label_value("Min / Max",   f"{min(prices):.2f}  /  {max(prices):.2f}")
-    label_value("Discounted",  f"{disc} ({disc/len(products)*100:.1f}%)")
+        box_line("Average Price", f"{st.mean(prices):.2f}")
+        box_line("Price Range",   f"{min(prices):.2f} - {max(prices):.2f}")
+    box_line("Discounted Items", f"{disc} ({disc/len(products)*100:.1f}%)")
+    
     print(hr)
     print()
 

@@ -36,7 +36,7 @@ src/
 │   └── README.md                  → See for analysis docs
 │
 └── utils/                         🛠️ Utilities (no business logic)
-    ├── colors.py                  Colors, prompts, UI formatting
+    ├── colors.py                  "Claude Code" UI, dynamic centering, prompts
     ├── http_client.py             HTTP requests with retry logic
     ├── helpers.py                 Price parsing, text cleaning
     ├── logger.py                  Logging setup
