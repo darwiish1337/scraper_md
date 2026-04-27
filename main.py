@@ -61,10 +61,9 @@ from src.utils.http_client import HttpClient
 from src.utils.logger import configure_logging, get_logger
 from src.utils.colors import (
     C, style, print_header, print_section, ok, info, warn, error, dim,
-    label_value, print_table, ProgressBar,
+    label_value, print_table,
     prompt_choice, prompt_multi_choice, prompt_text, prompt_int, confirm,
 )
-from src.utils.animations import Spinner, ProgressAnimation
 
 # Configure logging on startup
 configure_logging(level=settings.log_level, log_dir=str(settings.logs_dir))
@@ -126,7 +125,6 @@ def run_scrape(
             f"{style(site.currency, C.CYAN)}"
         )
 
-        bar     = ProgressBar(total=max_pages, label=f"{site.name} pages")
         scraper = create_scraper(key, cfg)
 
         # Validate category selection for simulated scrapers
@@ -136,15 +134,12 @@ def run_scrape(
                 warn(f"Category '{category}' not found for {site.name}. Using all categories.")
                 category = None
 
-        # Execute scrape with animation
-        progress = ProgressAnimation(total=max_pages, label=f"{site.name}")
-        
+        # Execute scrape
         result = scraper.search_products(
             query     = query or "",
             max_pages = max_pages,
             category  = category,
         )
-        progress.finish(f"{result.total_products} products found")
 
         # Check for scrape errors
         if not result.success:

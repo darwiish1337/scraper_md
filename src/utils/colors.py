@@ -202,47 +202,6 @@ def print_table(
     print(sep)
 
 
-class ProgressBar:
-    """
-    Simple terminal progress bar.
-
-    Usage:
-        bar = ProgressBar(total=100, label="Scraping")
-        for i in range(100):
-            bar.update(i + 1)
-        bar.done()
-    """
-
-    def __init__(self, total: int, label: str = "Progress", width: int = 40):
-        self.total  = max(total, 1)
-        self.label  = label
-        self.width  = width
-        self._last  = -1
-
-    def update(self, current: int, suffix: str = "") -> None:
-        pct   = min(current / self.total, 1.0)
-        filled = int(self.width * pct)
-        pct_int = int(pct * 100)
-
-        if pct_int == self._last and not suffix:
-            return
-        self._last = pct_int
-
-        bar_fill  = style("█" * filled,            C.BGREEN)
-        bar_empty = style("░" * (self.width - filled), C.DIM)
-        label_str = style(f"  {self.label:<18}", C.DIM, C.WHITE)
-        pct_str   = style(f" {pct_int:>3}%", C.BYELLOW)
-        sfx       = style(f"  {suffix}", C.DIM) if suffix else ""
-
-        line = f"\r{label_str} {bar_fill}{bar_empty}{pct_str}{sfx}"
-        sys.stdout.write(line)
-        sys.stdout.flush()
-
-    def done(self, msg: str = "done") -> None:
-        self.update(self.total)
-        print(style(f"  {msg}", C.BGREEN))
-
-
 def prompt_choice(
     question:  str,
     choices:   list[str],
