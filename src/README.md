@@ -36,7 +36,6 @@ src/
 │   └── README.md                  → See for analysis docs
 │
 └── utils/                         🛠️ Utilities (no business logic)
-    ├── animations.py              Terminal animations (Spinner, etc.)
     ├── colors.py                  Colors, prompts, UI formatting
     ├── http_client.py             HTTP requests with retry logic
     ├── helpers.py                 Price parsing, text cleaning
@@ -192,7 +191,6 @@ print(report.category_counts)  # Products per category
 
 **Key Classes:**
 - `HttpClient` — Requests with retry + delays
-- `Spinner`/`ProgressAnimation` — Terminal UI
 - `Logger` — Structured logging
 - `ColoredPrompt` — User prompts with colors
 
@@ -202,12 +200,6 @@ print(report.category_counts)  # Products per category
 from src.utils.http_client import HttpClient
 http = HttpClient()
 response = http.get("https://example.com", timeout=30)
-
-# Animations
-from src.utils.animations import ProgressAnimation
-progress = ProgressAnimation(total=100)
-progress.update(50)
-progress.finish("Done!")
 
 # Logging
 from src.utils.logger import get_logger

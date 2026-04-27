@@ -166,8 +166,7 @@ md-scraper/
 │   ├── analysis/
 │   │   └── analyzer.py          Price stats, category aggregations
 │   └── utils/
-│       ├── animations.py         Terminal animations (NEW!)
-│       ├── colors.py            Terminal UI — colors, prompts, progress
+│       ├── colors.py            Terminal UI — colors, prompts
 │       ├── http_client.py       Retry + rate limiting + user-agent rotation
 │       ├── helpers.py           Price parsing, text cleaning
 │       └── logger.py            Structured file logging
@@ -208,14 +207,6 @@ This project now includes comprehensive documentation for both users and develop
 - Fixed duplicate code in colors.py
 - Improved Settings validation
 - Better error handling throughout
-
-**New Animation System** 
-- Created animations.py with smooth CLI effects:
-  - Spinner (dots, line, pulse styles)
-  - TypeWriter effect
-  - ProgressAnimation (color-coded)
-  - FadeIn transitions
-- Integrated into scraping operations for visual feedback
 
 **Enhanced CLI**
 - Better input validation 
@@ -447,19 +438,6 @@ python main.py scrape amazon 10
 
 ```bash
 pip install -r requirements.txt
-```
-
-### Problem: Animation glitches or strange output
-**Solution:** Clear terminal and restart:
-
-```bash
-# Linux/macOS
-clear
-python main.py
-
-# Windows
-cls
-python main.py
 ```
 
 ### Problem: Database locked error
